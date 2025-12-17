@@ -533,24 +533,18 @@ class DobandaRobor(BaseBnrSensor):
     def native_value(self):
         """Returnează valoarea principală a senzorului (data extragerii)."""
         json_data = self.coordinator.data
-
-        # Ne asigurăm că extragem o listă; dacă "robor" lipsește, returnăm listă goală
         robor_data = json_data.get("robor", [])
 
-        # Verificare robustă: trebuie să fie listă ȘI să nu fie goală
+        # FIX: Verificăm dacă lista are elemente înainte de a cere indexul [0]
         if not isinstance(robor_data, list) or len(robor_data) == 0:
-            _LOGGER.error("Datele ROBOR sunt invalide sau goale pentru senzorul %s.", self._attr_name)
+            _LOGGER.warning("Datele ROBOR sunt goale sau invalide pentru %s", self._attr_name)
             return None
 
-        # Acum suntem siguri că robor_data[0] există
-        primul_element = robor_data[0]
-
-        # Verificăm dacă elementul este un dicționar înainte de .get()
-        if isinstance(primul_element, dict):
-            data_extragere = primul_element.get("Data")
-            if data_extragere:
-                _LOGGER.debug("Valoarea principală a senzorului %s este: %s", self._attr_name, data_extragere)
-                return data_extragere
+        # Acum putem lua data în siguranță
+        data_extragere = robor_data[0].get("Data")
+        if data_extragere:
+            _LOGGER.debug("Valoarea principală a senzorului %s este data: %s", self._attr_name, data_extragere)
+            return data_extragere
 
         return None
 
